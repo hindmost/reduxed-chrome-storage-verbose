@@ -1,0 +1,49 @@
+{
+  "name": "reduxed-chrome-storage-verbose",
+  "type": "module",
+  "version": "3.5.0",
+  "description": "Redux interface to chrome.storage (browser.storage). Unified way to use Redux in all modern browser extensions",
+  "license": "MIT",
+  "author": "Savr Goryaev aka hindmost",
+  "repository": "github:hindmost/reduxed-chrome-storage-verbose",
+  "keywords": [
+    "redux",
+    "chrome",
+    "extension",
+    "chrome-extension",
+    "storage",
+    "chrome-storage",
+    "browser-extension",
+    "webextension",
+    "store",
+    "state"
+  ],
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/index.d.mts",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest"
+  },
+  "peerDependencies": {
+    "redux": ">=4 <6"
+  },
+  "devDependencies": {
+    "redux": "^5",
+    "@reduxjs/toolkit": "2",
+    "rollup-plugin-license": "^2.8",
+    "tsdown": "^0.22",
+    "typescript": "^7.0",
+    "uuid": "^14",
+    "vitest": "^5"
+  },
+  "inlinedDependencies": {
+    "uuid": "14.0.2"
+  }
+}

@@ -1,0 +1,64 @@
+import { describe, it, expect } from 'vitest';
+import { mergeOrReplace } from '../src/utils';
+
+describe(`[utils/] mergeOrReplace() function`, () => {
+  const obj = {
+    one: 1,
+    two: 'two',
+    three: {
+      id: 1,
+      value: 500
+    },
+    four: [2, 3, 4]
+  };
+  const reducedObj = {
+    one: 1,
+    two: 'two',
+    three: {
+      id: 1,
+    }
+  };
+
+  it(`mergeOrReplace(object, reduced_object) = object`, async () => {
+    const ret = mergeOrReplace(obj, reducedObj);
+    console.log(` ret=${JSON.stringify(ret)}`);
+    expect(ret).to.eql(obj);
+  });
+
+  it(`mergeOrReplace(object, reduced_object, true) = reduced_object`, async () => {
+    const ret = mergeOrReplace(obj, reducedObj, true);
+    console.log(` ret=${JSON.stringify(ret)}`);
+    expect(ret).to.eql(reducedObj);
+  });
+
+  it(`mergeOrReplace(object, other_object) = other_object`, async () => {
+    const otherObj = {
+      one: 0,
+      two: {
+        id: 1,
+        value: 500
+      },
+      three: 'three',
+      four: [2, 3, 5]
+    };
+    const ret = mergeOrReplace(obj, otherObj);
+    console.log(` ret=${JSON.stringify(ret)}`);
+    expect(ret).to.eql(otherObj);
+    ret.two = 2;
+    console.log(` ret(2)=${JSON.stringify(ret)}; otherObj=${JSON.stringify(otherObj)}`);
+    expect(ret).to.not.eql(otherObj);
+  });
+
+  it(`mergeOrReplace(object_with_null, object_with_nested_object) = object_with_nested_object`, async () => {
+    const objWithNull = {
+      key: null
+    };
+    const objWithNestedObj = {
+      key: {p: 2}
+    };
+    const ret = mergeOrReplace(objWithNull, objWithNestedObj);
+    console.log(` ret=${JSON.stringify(ret)}`);
+    expect(ret).to.eql(objWithNestedObj);
+  });
+
+});

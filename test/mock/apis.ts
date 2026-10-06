@@ -1,0 +1,120 @@
+import {
+  StorageAreaName, StorageData, StorageChanges,
+  StorageGetKeys, StorageGetCallback, StorageListener,
+  StorageAreaCallbacked, StorageAreaPromised, ChromeNamespace, BrowserNamespace
+} from '../../src/types/apis';
+import { cloneDeep }  from '../../src/utils';
+
+const pick = (obj: StorageData, keys: StorageGetKeys) => {
+  if (typeof obj !== 'object' || !keys)
+    return obj;
+  const ret: StorageData = {};
+  keys = typeof keys === 'string'? [keys] : keys;
+  for (const key in obj) {
+    if (Array.isArray(keys)? keys.includes(key) : keys[key]) {
+      ret[key] = obj[key];
+    }
+  }
+  return ret;
+}
+let storageData: StorageData = {};
+let listeners: StorageListener[] = [];
+
+class SharedStorageArea {
+  QUOTA_BYTES = 0;
+  name: StorageAreaName;
+
+  constructor(name: string) {
+    this.name = name === 'sync'? 'sync' : 'local';
+  }
+
+  _get(keys?: StorageGetKeys, fn?: StorageGetCallback): void {
+    console.log(`SharedStorageArea.get(): storageData=${JSON.stringify(storageData)}`);
+    const data = typeof keys !== 'undefined'? pick(storageData, keys) :
+      storageData;
+    setTimeout(() => {
+      console.log(`SharedStorageArea.get(): timeout`);
+      typeof fn === 'function' && fn(data);
+    }, 0);
+  }
+  _set(data: StorageData, callback?: () => void) {
+    const changes: StorageChanges = {};
+    for (const key in data) {
+      const oldValue = cloneDeep(storageData[key]);
+      const newValue = storageData[key] = cloneDeep(data[key]);
+      changes[key] = {newValue, oldValue};
+    }
+    console.log(`SharedStorageArea.set(): data=${JSON.stringify(data)}; changes=${JSON.stringify(changes)}; n(listeners)=${listeners.length}`);
+    Object.keys(changes).length &&
+    setTimeout(() => {
+      console.log(`SharedStorageArea.set(): timeout`);
+      for (const fn of listeners) {
+        fn(changes, this.name);
+      }
+      typeof callback === 'function' && callback();
+    }, 0);
+  }
+  clear() {
+    console.log(`SharedStorageArea.clear():`);
+    storageData = {};
+    listeners = [];
+  }
+}
+
+class ChromeStorageArea extends SharedStorageArea {
+  get(callback: StorageGetCallback): void
+  get(
+    keys: StorageGetCallback | StorageGetKeys, callback?: StorageGetCallback
+  ): void {
+    typeof keys === 'function'?
+      this._get(undefined, keys as StorageGetCallback) :
+      this._get(keys, callback);
+  }
+  set(data: StorageData, callback?: () => void) {
+    this._set(data, callback);
+  }
+}
+
+class BrowserStorageArea extends SharedStorageArea {
+  get(keys?: StorageGetKeys): Promise<StorageData> {
+    return new Promise(resolve => {
+      this._get(keys, data => {
+        resolve(data);
+      });
+    });
+  }
+  set(data: StorageData): Promise<void> {
+    return new Promise(resolve => {
+      this._set(data, () => {
+        resolve();
+      });
+    });
+  }
+}
+
+function addListener(fn: StorageListener) {
+  typeof fn === 'function' && listeners.push(fn);
+  console.log(`addListener(): fn=${typeof fn}; n(listeners)=${listeners.length}`);
+}
+
+export const chrome = {
+  storage: {
+    local: new ChromeStorageArea('local') as StorageAreaCallbacked,
+    sync: new ChromeStorageArea('sync') as StorageAreaCallbacked,
+    onChanged: {
+      addListener
+    }
+  },
+  runtime: {
+  }
+} as ChromeNamespace;
+
+export const browser = Object.assign({}, chrome, {
+  storage: {
+    local: new BrowserStorageArea('local') as StorageAreaPromised,
+    sync: new BrowserStorageArea('sync') as StorageAreaPromised,
+    onChanged: {
+      addListener
+    }
+  }
+}) as BrowserNamespace;
