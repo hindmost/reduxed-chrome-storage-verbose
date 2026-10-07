@@ -1,7 +1,7 @@
 {
   "name": "reduxed-chrome-storage-verbose",
   "type": "module",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "description": "Redux interface to chrome.storage (browser.storage). Unified way to use Redux in all modern browser extensions",
   "license": "MIT",
   "author": "Savr Goryaev aka hindmost",
